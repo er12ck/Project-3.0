@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CofTea - Coffee Shop Admin Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts: Plus Jakarta Sans & Serif Accent -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        espresso: {
+                            50: '#FDF8F5',
+                            100: '#F9EFEA',
+                            200: '#EEDACF',
+                            300: '#DFBCA8',
+                            400: '#CC987D',
+                            500: '#B67554',
+                            600: '#9E5B3C',
+                            700: '#7E432A',
+                            800: '#5C311E',
+                            900: '#3D1F13',
+                            950: '#231008',
+                        },
+                        cream: {
+                            50: '#FAF8F5',
+                            100: '#F4EFE6',
+                            200: '#E8DEC9',
+                            300: '#DBCBA8',
+                            bg: '#F5EBE1',
+                        },
+                        latte: '#D4A373',
+                        warmgold: '#E0A96D',
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #FAF8F5;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F4EFE6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CC987D;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9E5B3C;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased h-screen overflow-hidden">
+
+    <!-- ================================================================= -->
+    <!-- 0. AUTHENTICATION SECTION (WELCOME / LOGIN / SIGNUP)              -->
+    <!-- ================================================================= -->
+    <div id="auth-container" class="fixed inset-0 z-50 bg-cream-bg flex items-center justify-center p-4 overflow-y-auto">
+        
+        <!-- Outer Card Wrapper matching mobile mockup style -->
+        <div class="relative w-full max-w-md bg-[#F4ECE1] rounded-3xl border-2 border-warmgold/30 shadow-2xl overflow-hidden p-8 flex flex-col justify-between min-h-[640px]">
+            
+            <!-- Decorative Leaves (Top-Left) -->
+            <div class="absolute top-0 left-0 p-4 pointer-events-none opacity-80">
+                <i class="fa-solid fa-leaf text-emerald-800 text-3xl rotate-45"></i>
+            </div>
+
+            <!-- Header Branding -->
+            <div class="text-center mt-4">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-espresso-900 text-warmgold shadow-md mb-2">
+                    <i class="fa-solid fa-mug-hot text-3xl"></i>
+                </div>
+                <h1 class="text-4xl font-serif font-bold text-espresso-950 tracking-wide">CofTea</h1>
+                <p class="text-[11px] font-semibold tracking-widest text-espresso-700 uppercase mt-1">Coffee • Tea • Good Vibes</p>
+            </div>
+
+            <!-- VIEW 1: WELCOME SCREEN -->
+            <div id="auth-welcome" class="my-auto space-y-6 text-left px-2">
+                <div>
+                    <h2 class="text-3xl font-bold font-serif text-espresso-900 leading-tight">Welcome,<br>Admin!</h2>
+                    <p class="text-sm text-slate-600 mt-1 font-medium">Manage your shop</p>
+                </div>
+                <button onclick="showAuthView('login')" class="w-full py-3.5 bg-warmgold hover:bg-espresso-600 text-espresso-950 hover:text-white rounded-2xl font-bold text-base shadow-md transition-all active:scale-95">
+                    Get started
+                </button>
+            </div>
+
+            <!-- VIEW 2: LOGIN SCREEN -->
+            <div id="auth-login" class="hidden my-auto space-y-4 text-left">
+                <div>
+                    <h2 class="text-2xl font-bold font-serif text-espresso-900">Log in</h2>
+                    <p class="text-xs text-slate-600">To manage your shop</p>
+                </div>
+                <form onsubmit="handleAuthSubmit(event)" class="space-y-3.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-espresso-900 mb-1">Username</label>
+                        <input type="text" required value="KimBing" placeholder="Enter username" class="w-full px-4 py-2.5 rounded-xl border border-warmgold/60 bg-white/80 text-sm focus:outline-none focus:ring-2 focus:ring-espresso-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-espresso-900 mb-1">Password</label>
+                        <div class="relative">
+                            <input type="password" id="login-pass" required value="secret123" placeholder="••••••••" class="w-full pl-4 pr-10 py-2.5 rounded-xl border border-warmgold/60 bg-white/80 text-sm focus:outline-none focus:ring-2 focus:ring-espresso-500">
+                            <button type="button" onclick="togglePassVisibility('login-pass')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                <i class="fa-solid fa-eye-slash text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-center pt-1">
+                        <p class="text-xs text-slate-600">Don't have an account? <a href="#" onclick="showAuthView('signup')" class="text-warmgold font-bold hover:underline">Sign Up</a></p>
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-warmgold hover:bg-espresso-800 text-espresso-950 hover:text-white rounded-xl font-bold text-sm shadow transition active:scale-95">
+                        Login
+                    </button>
+                </form>
+            </div>
+
+            <!-- VIEW 3: SIGN UP SCREEN -->
+            <div id="auth-signup" class="hidden my-auto space-y-3 text-left">
+                <div>
+                    <h2 class="text-2xl font-bold font-serif text-espresso-900">Sign up</h2>
+                    <p class="text-xs text-slate-600">Create your account</p>
+                </div>
+                <form onsubmit="handleAuthSubmit(event)" class="space-y-2.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-espresso-900 mb-0.5">Username</label>
+                        <input type="text" required placeholder="Desired username" class="w-full px-3.5 py-2 rounded-xl border border-warmgold/60 bg-white/80 text-xs focus:outline-none focus:ring-2 focus:ring-espresso-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-espresso-900 mb-0.5">Phone Number</label>
+                        <input type="tel" required placeholder="+63 9XX XXX XXXX" class="w-full px-3.5 py-2 rounded-xl border border-warmgold/60 bg-white/80 text-xs focus:outline-none focus:ring-2 focus:ring-espresso-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-espresso-900 mb-0.5">Address</label>
+                        <input type="text" required placeholder="Baguio City address" class="w-full px-3.5 py-2 rounded-xl border border-warmgold/60 bg-white/80 text-xs focus:outline-none focus:ring-2 focus:ring-espresso-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-espresso-900 mb-0.5">Password</label>
+                        <div class="relative">
+                            <input type="password" id="signup-pass" required placeholder="••••••••" class="w-full pl-3.5 pr-9 py-2 rounded-xl border border-warmgold/60 bg-white/80 text-xs focus:outline-none focus:ring-2 focus:ring-espresso-500">
+                            <button type="button" onclick="togglePassVisibility('signup-pass')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                <i class="fa-solid fa-eye-slash text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <a href="#" onclick="showToast('Password reset link sent to registered email')" class="text-[11px] text-warmgold font-semibold hover:underline">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="w-full py-2.5 bg-warmgold hover:bg-espresso-800 text-espresso-950 hover:text-white rounded-xl font-bold text-xs shadow transition active:scale-95">
+                        Sign up
+                    </button>
+                    <div class="text-center pt-1">
+                        <p class="text-xs text-slate-600">Already have an account? <a href="#" onclick="showAuthView('login')" class="text-warmgold font-bold hover:underline">Log In</a></p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Bottom Graphic Decor -->
+            <div class="flex items-center justify-between text-espresso-900/40 text-xs pt-4 border-t border-warmgold/20">
+                <span>CofTea Admin v2.4</span>
+                <i class="fa-solid fa-mug-saucer text-lg"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MAIN APPLICATION DASHBOARD (HIDDEN UNTIL LOGGED IN)              -->
+    <!-- ================================================================= -->
+    <div id="app-dashboard" class="hidden flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR NAV -->
+        <aside id="sidebar" class="bg-espresso-900 text-cream-100 w-64 flex-shrink-0 flex flex-col justify-between transition-all duration-300 z-30 absolute md:relative inset-y-0 left-0 -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none">
+            <div>
+                <!-- Logo Section -->
+                <div class="h-20 flex items-center justify-between px-6 border-b border-espresso-800/60">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-warmgold to-espresso-500 flex items-center justify-center text-espresso-950 shadow-md">
+                            <i class="fa-solid fa-mug-hot text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="font-bold text-lg leading-tight tracking-wide text-white">CofTea</h1>
+                            <p class="text-xs text-cream-300/70 font-medium">Coffee Shop Admin</p>
+                        </div>
+                    </div>
+                    <button id="close-sidebar-btn" class="md:hidden text-cream-300 hover:text-white">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="p-4 space-y-1.5 overflow-y-auto max-h-[calc(100vh-220px)]">
+                    <a href="#dashboard" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item flex items-center space-x-3.5 px-4 py-3 rounded-xl font-medium transition-all duration-200 bg-espresso-800 text-warmgold shadow-inner">
+                        <i class="fa-solid fa-chart-pie w-5 text-center text-lg"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#orders" onclick="switchTab('orders')" id="nav-orders" class="nav-item flex items-center justify-between px-4 py-3 rounded-xl font-medium text-cream-200/80 hover:bg-espresso-800/50 hover:text-white transition-all duration-200">
+                        <div class="flex items-center space-x-3.5">
+                            <i class="fa-solid fa-receipt w-5 text-center text-lg"></i>
+                            <span>Live Orders</span>
+                        </div>
+                        <span class="bg-amber-500/20 text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold border border-amber-500/30" id="sidebar-order-count">4</span>
+                    </a>
+                    <a href="#menu" onclick="switchTab('menu')" id="nav-menu" class="nav-item flex items-center space-x-3.5 px-4 py-3 rounded-xl font-medium text-cream-200/80 hover:bg-espresso-800/50 hover:text-white transition-all duration-200">
+                        <i class="fa-solid fa-utensils w-5 text-center text-lg"></i>
+                        <span>Menu Management</span>
+                    </a>
+                    <a href="#users" onclick="switchTab('users')" id="nav-users" class="nav-item flex items-center space-x-3.5 px-4 py-3 rounded-xl font-medium text-cream-200/80 hover:bg-espresso-800/50 hover:text-white transition-all duration-200">
+                        <i class="fa-solid fa-users w-5 text-center text-lg"></i>
+                        <span>Users & Blocking</span>
+                    </a>
+                    <a href="#inventory" onclick="switchTab('inventory')" id="nav-inventory" class="nav-item flex items-center justify-between px-4 py-3 rounded-xl font-medium text-cream-200/80 hover:bg-espresso-800/50 hover:text-white transition-all duration-200">
+                        <div class="flex items-center space-x-3.5">
+                            <i class="fa-solid fa-boxes-stacked w-5 text-center text-lg"></i>
+                            <span>Inventory</span>
+                        </div>
+                        <span class="bg-red-500/20 text-red-300 text-xs px-2 py-0.5 rounded-full font-bold border border-red-500/30">2 Low</span>
+                    </a>
+                    <a href="#vouchers" onclick="switchTab('vouchers')" id="nav-vouchers" class="nav-item flex items-center space-x-3.5 px-4 py-3 rounded-xl font-medium text-cream-200/80 hover:bg-espresso-800/50 hover:text-white transition-all duration-200">
+                        <i class="fa-solid fa-ticket w-5 text-center text-lg"></i>
+                        <span>Vouchers & Promos</span>
+                    </a>
+                    <a href="#staff" onclick="switchTab('staff')" id="nav-staff" class="nav-item flex items-center space-x-3.5 px-4 py-3 rounded-xl font-medium text-cream-200/80 hover:bg-espresso-800/50 hover:text-white transition-all duration-200">
+                        <i class="fa-solid fa-user-group w-5 text-center text-lg"></i>
+                        <span>Barista Staff</span>
+                    </a>
+                    <a href="#logs" onclick="switchTab('logs')" id="nav-logs" class="nav-item flex items-center space-x-3.5 px-4 py-3 rounded-xl font-medium text-cream-200/80 hover:bg-espresso-800/50 hover:text-white transition-all duration-200">
+                        <i class="fa-solid fa-clock-rotate-left w-5 text-center text-lg"></i>
+                        <span>History Logs</span>
+                    </a>
+                    <a href="#analytics" onclick="switchTab('analytics')" id="nav-analytics" class="nav-item flex items-center space-x-3.5 px-4 py-3 rounded-xl font-medium text-cream-200/80 hover:bg-espresso-800/50 hover:text-white transition-all duration-200">
+                        <i class="fa-solid fa-chart-line w-5 text-center text-lg"></i>
+                        <span>Sales & Analytics</span>
+                    </a>
+                    <a href="#settings" onclick="switchTab('settings')" id="nav-settings" class="nav-item flex items-center space-x-3.5 px-4 py-3 rounded-xl font-medium text-cream-200/80 hover:bg-espresso-800/50 hover:text-white transition-all duration-200">
+                        <i class="fa-solid fa-sliders w-5 text-center text-lg"></i>
+                        <span>Settings</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Sidebar Footer / Store Status -->
+            <div class="p-4 m-4 rounded-xl bg-espresso-950/60 border border-espresso-800/50">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-cream-300 uppercase tracking-wider">Store Status</span>
+                    <span class="flex h-2.5 w-2.5 relative">
+                      <span id="store-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span id="store-dot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                </div>
+                <p id="store-status-text" class="text-xs text-cream-200/70 font-medium mb-3">Main Street Branch • Open</p>
+                <button onclick="toggleStoreStatus(this)" class="w-full py-2 bg-espresso-800 hover:bg-espresso-700 text-cream-100 text-xs font-medium rounded-lg transition text-center">
+                    Change Status
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTAINER -->
+        <div class="flex-1 flex flex-col h-screen overflow-hidden">
+            
+            <!-- TOP HEADER -->
+            <header class="h-20 bg-white/80 backdrop-blur-md border-b border-cream-200/80 px-6 flex items-center justify-between shrink-0 z-20">
+                <div class="flex items-center space-x-4">
+                    <button id="open-sidebar-btn" class="md:hidden text-espresso-800 p-2 hover:bg-cream-100 rounded-lg">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <div class="relative w-48 sm:w-72 md:w-96">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="global-search-input" onkeyup="handleGlobalSearch(this.value)" placeholder="Search orders, menu, users, addresses..." class="w-full pl-10 pr-4 py-2 bg-cream-50/80 border border-cream-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-espresso-500/30 focus:border-espresso-500 transition-all placeholder:text-slate-400">
+                    </div>
+                </div>
+
+                <!-- Header Right Items -->
+                <div class="flex items-center space-x-3 sm:space-x-5">
+                    <button onclick="openNewOrderModal()" class="hidden sm:flex items-center space-x-2 bg-espresso-800 hover:bg-espresso-900 text-white px-4 py-2 rounded-xl font-medium text-sm transition shadow-md shadow-espresso-900/10 active:scale-95">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>Quick Order</span>
+                    </button>
+<!-- Admin Profile Dropdown -->
+                    <div class="relative">
+                        <button id="profile-dropdown-btn" class="flex items-center space-x-3 p-1.5 rounded-xl hover:bg-cream-100/70 transition">
+                            <!-- Updated Image Source for Kim -->
+                            <img src="kim.PNG" alt="Kim Bing Avatar" class="w-9 h-9 rounded-xl object-cover ring-2 ring-espresso-500/20">
+                            <div class="hidden lg:block text-left">
+                                <h4 class="text-xs font-bold text-slate-800 leading-none mb-1">Kim Bing</h4>
+                                <p class="text-[10px] text-slate-500 font-semibold leading-none">Head Barista / Mgr</p>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-xs text-slate-400 hidden sm:block"></i>
+                        </button>
+                        <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-cream-200 py-2 z-50">
+                            <div class="px-4 py-2 border-b border-slate-100 lg:hidden">
+                                <p class="text-xs font-bold text-slate-800">Kim Bing</p>
+                                <p class="text-[10px] text-slate-500">Manager</p>
+                            </div>
+                            <a href="#settings" onclick="switchTab('settings')" class="flex items-center px-4 py-2 text-xs font-medium text-slate-700 hover:bg-cream-50 hover:text-espresso-800"><i class="fa-solid fa-gear w-5"></i> Store Settings</a>
+                            <div class="border-t border-slate-100 my-1"></div>
+                            <a href="#" onclick="handleLogout()" class="flex items-center px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50"><i class="fa-solid fa-right-from-bracket w-5"></i> Log Out</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- DASHBOARD CONTENT AREA -->
+            <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+                <!-- 1. DASHBOARD OVERVIEW -->
+                <div id="section-dashboard" class="space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-espresso-950 tracking-tight">Store Overview</h2>
+                            <p class="text-sm text-slate-500">Good morning Kim, here is what's happening today.</p>
+                        </div>
+                        <div class="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-xl border border-cream-200 text-xs font-medium text-slate-600 shadow-sm">
+                            <i class="fa-regular fa-calendar text-espresso-600"></i>
+                            <span id="current-date-str">Tuesday, Oct 20</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI Cards Grid (Peso) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                        <div class="bg-white p-5 rounded-2xl border border-cream-200/80 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Today's Revenue</span>
+                                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                                    <span class="text-lg font-extrabold">₱</span>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-extrabold text-slate-900">₱84,250.00</h3>
+                                <div class="flex items-center space-x-1.5 mt-2">
+                                    <span class="inline-flex items-center text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                                        <i class="fa-solid fa-arrow-trend-up text-[10px] mr-1"></i> +14.2%
+                                    </span>
+                                    <span class="text-xs text-slate-400">vs yesterday</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-cream-200/80 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Orders</span>
+                                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-mug-hot text-lg"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-extrabold text-slate-900" id="kpi-orders-count">184</h3>
+                                <div class="flex items-center space-x-1.5 mt-2">
+                                    <span class="inline-flex items-center text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                                        <i class="fa-solid fa-arrow-trend-up text-[10px] mr-1"></i> +8.5%
+                                    </span>
+                                    <span class="text-xs text-slate-400">vs yesterday</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-cream-200/80 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Stock Alerts</span>
+                                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-extrabold text-slate-900">2 Items</h3>
+                                <div class="flex items-center space-x-1.5 mt-2">
+                                    <span class="inline-flex items-center text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">Action Req.</span>
+                                    <span class="text-xs text-slate-400">Oat Milk & Vanilla Syrup</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-cream-200/80 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Satisfaction Rate</span>
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-smile text-lg"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-extrabold text-slate-900">98.4%</h3>
+                                <div class="flex items-center space-x-1.5 mt-2">
+                                    <span class="inline-flex items-center text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                                        <i class="fa-solid fa-star text-[10px] mr-1 text-amber-500"></i> 4.9 / 5.0
+                                    </span>
+                                    <span class="text-xs text-slate-400">(120 reviews)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Orders Queue & Peak Sales -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white rounded-2xl border border-cream-200/80 shadow-sm p-6 flex flex-col">
+                            <div class="flex items-center justify-between mb-5">
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-lg">Active Orders Queue</h3>
+                                    <p class="text-xs text-slate-500">Real-time incoming orders with assigned cashier</p>
+                                </div>
+                                <button onclick="switchTab('orders')" class="text-xs font-semibold text-espresso-700 hover:text-espresso-900 flex items-center space-x-1">
+                                    <span>View All</span>
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                            <div class="space-y-3 flex-1 overflow-y-auto max-h-[420px] pr-1" id="dash-orders-container"></div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-cream-200/80 shadow-sm p-6 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="font-bold text-slate-900 text-lg">Peak Sales Hours</h3>
+                                    <span class="text-xs font-medium text-slate-400">Today</span>
+                                </div>
+                                <div class="relative h-48 w-full mb-6">
+                                    <canvas id="hourlySalesChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="border-t border-cream-100 pt-4">
+                                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Top Selling Today</h4>
+                                <div class="space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2.5">
+                                            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-bold">#1</div>
+                                            <div>
+                                                <p class="text-xs font-bold text-slate-800">Iced Caramel Macchiato</p>
+                                                <p class="text-[10px] text-slate-400">Espresso & Sweet Syrup</p>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs font-bold text-slate-700">62 cups</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. ORDERS MANAGEMENT -->
+                <div id="section-orders" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-espresso-950 tracking-tight">Live Orders Queue</h2>
+                            <p class="text-sm text-slate-500">Manage real-time order fulfillment status & assigned cashiers</p>
+                        </div>
+                        <div class="flex items-center space-x-1 bg-cream-100/80 p-1 rounded-xl border border-cream-200">
+                            <button onclick="filterOrders('all', this)" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-espresso-900 shadow-sm">All Orders</button>
+                            <button onclick="filterOrders('Pending', this)" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-espresso-900">Pending</button>
+                            <button onclick="filterOrders('Preparing', this)" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-espresso-900">Preparing</button>
+                            <button onclick="filterOrders('Ready', this)" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-espresso-900">Ready</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-cream-200/80 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-cream-50/70 border-b border-cream-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="p-4 pl-6">Order ID</th>
+                                        <th class="p-4">Customer</th>
+                                        <th class="p-4">Items Ordered</th>
+                                        <th class="p-4">Cashier</th>
+                                        <th class="p-4">Total</th>
+                                        <th class="p-4">Status</th>
+                                        <th class="p-4 text-right pr-6">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-cream-100 text-sm" id="full-orders-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. MENU MANAGEMENT -->
+                <div id="section-menu" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-espresso-950 tracking-tight">Menu Management</h2>
+                            <p class="text-sm text-slate-500">Add, edit, or toggle availability of coffee shop items</p>
+                        </div>
+                        <button onclick="openMenuModal()" class="bg-espresso-800 hover:bg-espresso-900 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition shadow-md flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                            <span>Add New Item</span>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center space-x-2 border-b border-cream-200 pb-3 overflow-x-auto">
+                        <button onclick="filterMenu('all', this)" class="menu-cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-espresso-800 text-white shadow-sm whitespace-nowrap">All Items</button>
+                        <button onclick="filterMenu('Espresso', this)" class="menu-cat-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-cream-100 whitespace-nowrap">Espresso & Coffee</button>
+                        <button onclick="filterMenu('Cold Brew', this)" class="menu-cat-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-cream-100 whitespace-nowrap">Cold Brew & Iced</button>
+                        <button onclick="filterMenu('Milk Tea', this)" class="menu-cat-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-cream-100 whitespace-nowrap">Milk Tea & Specialty</button>
+                        <button onclick="filterMenu('Pastries', this)" class="menu-cat-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-cream-100 whitespace-nowrap">Fresh Bakery</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5" id="menu-grid"></div>
+                </div>
+
+                <!-- 4. USERS MANAGEMENT & BLOCKING SYSTEM -->
+                <div id="section-users" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-espresso-950 tracking-tight">Customer & User Management</h2>
+                            <p class="text-sm text-slate-500">View customer profile details, delivery addresses, contact numbers, and account status</p>
+                        </div>
+                    </div>
+
+                    <!-- Status Filter Pills -->
+                    <div class="flex items-center space-x-2 border-b border-cream-200 pb-3">
+                        <button onclick="filterUsers('all', this)" id="user-filter-all" class="user-filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-warmgold/80 text-espresso-950 border border-warmgold/50 shadow-sm">
+                            All (<span id="count-all-users">0</span>)
+                        </button>
+                        <button onclick="filterUsers('Active', this)" class="user-filter-btn px-4 py-1.5 rounded-full text-xs font-medium text-slate-600 bg-white border border-cream-200 hover:bg-cream-50">
+                            Active (<span id="count-active-users">0</span>)
+                        </button>
+                        <button onclick="filterUsers('Blocked', this)" class="user-filter-btn px-4 py-1.5 rounded-full text-xs font-medium text-slate-600 bg-white border border-cream-200 hover:bg-cream-50">
+                            Blocked / Inactive (<span id="count-blocked-users">0</span>)
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-cream-200/80 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-cream-50/70 border-b border-cream-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="p-4 pl-6">Customer Details</th>
+                                        <th class="p-4">Contact Number</th>
+                                        <th class="p-4">Delivery Address</th>
+                                        <th class="p-4">Joined Date</th>
+                                        <th class="p-4">Status</th>
+                                        <th class="p-4 text-right pr-6">Action / Blocking</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-cream-100 text-sm" id="users-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. INVENTORY -->
+                <div id="section-inventory" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-espresso-950 tracking-tight">Stock & Inventory</h2>
+                            <p class="text-sm text-slate-500">Monitor coffee beans, dairy, syrups, and packaging stock</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-cream-200/80 shadow-sm p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-cream-50/70 border-b border-cream-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="p-3.5">Ingredient / Supply</th>
+                                        <th class="p-3.5">Category</th>
+                                        <th class="p-3.5">In Stock</th>
+                                        <th class="p-3.5">Status Level</th>
+                                        <th class="p-3.5 text-right">Quick Restock</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-cream-100 text-sm">
+                                    <tr>
+                                        <td class="p-3.5 font-bold text-slate-800">Oat Milk (Barista Blend)</td>
+                                        <td class="p-3.5 text-xs text-slate-500">Dairy & Alternatives</td>
+                                        <td class="p-3.5 font-semibold text-slate-700">4 Liters</td>
+                                        <td class="p-3.5"><span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-bold">Critical Low</span></td>
+                                        <td class="p-3.5 text-right"><button onclick="restockAlert('Oat Milk')" class="text-xs bg-espresso-800 text-white px-3 py-1 rounded-lg hover:bg-espresso-900">+ Order Batch</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3.5 font-bold text-slate-800">Vanilla Syrup (1L)</td>
+                                        <td class="p-3.5 text-xs text-slate-500">Syrups & Flavors</td>
+                                        <td class="p-3.5 font-semibold text-slate-700">2 Bottles</td>
+                                        <td class="p-3.5"><span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-bold">Critical Low</span></td>
+                                        <td class="p-3.5 text-right"><button onclick="restockAlert('Vanilla Syrup')" class="text-xs bg-espresso-800 text-white px-3 py-1 rounded-lg hover:bg-espresso-900">+ Order Batch</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. VOUCHERS & PROMOS -->
+                <div id="section-vouchers" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-espresso-950 tracking-tight">Voucher & Promo Management</h2>
+                            <p class="text-sm text-slate-500">Create and manage discount codes for counter and app orders</p>
+                        </div>
+                        <button onclick="openVoucherModal()" class="bg-espresso-800 hover:bg-espresso-900 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition shadow-md flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                            <span>Create New Voucher</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="vouchers-grid"></div>
+                </div>
+
+                <!-- 7. BARISTA STAFF -->
+                <div id="section-staff" class="hidden space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-espresso-950 tracking-tight">Barista Staff & Accounts</h2>
+                            <p class="text-sm text-slate-500">Manage shift assignments, cashier accounts, and security suspensions</p>
+                        </div>
+                        <button onclick="showToast('Staff invite link copied!')" class="bg-espresso-800 hover:bg-espresso-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm">
+                            + Add Staff Member
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="staff-cards-container"></div>
+                </div>
+
+                <!-- 8. HISTORY LOGS -->
+                <div id="section-logs" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-espresso-950 tracking-tight">System & Activity History Logs</h2>
+                            <p class="text-sm text-slate-500">Auditing trail for cashiers, menu modifications, and administrative actions</p>
+                        </div>
+                        <button onclick="clearLogs()" class="text-xs bg-white border border-red-200 text-red-600 px-3 py-2 rounded-xl hover:bg-red-50 font-semibold transition">
+                            <i class="fa-solid fa-trash mr-1"></i> Clear Logs
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-cream-200/80 shadow-sm overflow-hidden p-4">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-cream-50/70 border-b border-cream-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="p-3.5">Timestamp</th>
+                                        <th class="p-3.5">User / Cashier</th>
+                                        <th class="p-3.5">Action Category</th>
+                                        <th class="p-3.5">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-cream-100 text-sm" id="logs-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. SALES & ANALYTICS -->
+                <div id="section-analytics" class="hidden space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-espresso-950 tracking-tight">Sales & Analytics</h2>
+                        <p class="text-sm text-slate-500">Track revenue growth, yearly trends, and category breakdown in Philippine Peso (₱)</p>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-cream-200/80 shadow-sm">
+                            <h3 class="font-bold text-slate-900 mb-4">Weekly Revenue Trend (₱)</h3>
+                            <div class="relative h-64"><canvas id="weeklySalesChart"></canvas></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-cream-200/80 shadow-sm">
+                            <h3 class="font-bold text-slate-900 mb-4">Yearly Revenue Overview (₱)</h3>
+                            <div class="relative h-64"><canvas id="yearlySalesChart"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-cream-200/80 shadow-sm mt-6">
+                        <h3 class="font-bold text-slate-900 mb-4">Sales Breakdown by Category</h3>
+                        <div class="relative h-64 flex items-center justify-center"><canvas id="categoryPieChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- 10. SETTINGS -->
+                <div id="section-settings" class="hidden space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-espresso-950 tracking-tight">Store Settings</h2>
+                        <p class="text-sm text-slate-500">Configure shop parameters and receipts</p>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-cream-200/80 shadow-sm p-6 max-w-2xl space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Store Name</label>
+                            <input type="text" id="settings-store-name" value="CofTea Craft Coffee & Tea" class="w-full px-4 py-2 border border-cream-300 rounded-xl text-sm focus:ring-2 focus:ring-espresso-500 focus:outline-none">
+                        </div>
+                        <button onclick="saveSettings()" class="bg-espresso-800 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-espresso-900 transition">Save Changes</button>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- MODALS & TOAST -->
+    <div id="menu-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-cream-200 p-6 m-4">
+            <div class="flex items-center justify-between mb-5 border-b border-cream-100 pb-3">
+                <h3 class="text-lg font-bold text-espresso-950">Add New Menu Item</h3>
+                <button onclick="closeMenuModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleSaveMenuItem(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Item Title</label>
+                    <input type="text" id="item-name" required placeholder="e.g. Spanish Latte" class="w-full px-3.5 py-2 border border-cream-300 rounded-xl text-sm focus:outline-none focus:border-espresso-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Category</label>
+                        <select id="item-category" class="w-full px-3.5 py-2 border border-cream-300 rounded-xl text-sm focus:outline-none">
+                            <option value="Espresso">Espresso</option>
+                            <option value="Cold Brew">Cold Brew</option>
+                            <option value="Milk Tea">Milk Tea</option>
+                            <option value="Pastries">Pastries</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Price (₱)</label>
+                        <input type="number" step="1" id="item-price" required placeholder="160" class="w-full px-3.5 py-2 border border-cream-300 rounded-xl text-sm focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Description</label>
+                    <textarea id="item-desc" rows="2" placeholder="Brief description" class="w-full px-3.5 py-2 border border-cream-300 rounded-xl text-sm focus:outline-none"></textarea>
+                </div>
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-cream-100">
+                    <button type="button" onclick="closeMenuModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-espresso-800 text-white hover:bg-espresso-900 transition">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="voucher-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-cream-200 p-6 m-4">
+            <div class="flex items-center justify-between mb-5 border-b border-cream-100 pb-3">
+                <h3 class="text-lg font-bold text-espresso-950">Create New Promo Voucher</h3>
+                <button onclick="closeVoucherModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleSaveVoucher(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Voucher Code</label>
+                    <input type="text" id="voucher-code" required placeholder="e.g. BREW20" class="w-full px-3.5 py-2 border border-cream-300 rounded-xl text-sm focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Discount Type</label>
+                        <select id="voucher-type" class="w-full px-3.5 py-2 border border-cream-300 rounded-xl text-sm focus:outline-none">
+                            <option value="Percentage">Percentage (%)</option>
+                            <option value="Fixed">Fixed Amount (₱)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Discount Value</label>
+                        <input type="text" id="voucher-val" required placeholder="15% or ₱50" class="w-full px-3.5 py-2 border border-cream-300 rounded-xl text-sm focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Expiry Date</label>
+                    <input type="date" id="voucher-expiry" required class="w-full px-3.5 py-2 border border-cream-300 rounded-xl text-sm focus:outline-none">
+                </div>
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-cream-100">
+                    <button type="button" onclick="closeVoucherModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-espresso-800 text-white hover:bg-espresso-900 transition">Save Voucher</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-espresso-950 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 translate-y-20 opacity-0 transition-all duration-300 z-50 border border-espresso-700">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toast-message" class="text-xs font-medium">Operation completed successfully!</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- AUTHENTICATION STATE LOGIC ---
+        function showAuthView(viewName) {
+            document.getElementById('auth-welcome').classList.add('hidden');
+            document.getElementById('auth-login').classList.add('hidden');
+            document.getElementById('auth-signup').classList.add('hidden');
+
+            if (viewName === 'welcome') document.getElementById('auth-welcome').classList.remove('hidden');
+            if (viewName === 'login') document.getElementById('auth-login').classList.remove('hidden');
+            if (viewName === 'signup') document.getElementById('auth-signup').classList.remove('hidden');
+        }
+
+        function togglePassVisibility(inputId) {
+            const el = document.getElementById(inputId);
+            if (el) {
+                el.type = el.type === 'password' ? 'text' : 'password';
+            }
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            document.getElementById('auth-container').classList.add('hidden');
+            document.getElementById('app-dashboard').classList.remove('hidden');
+            showToast("Welcome back, Kim Bing!");
+            
+            // Re-trigger layout calculations
+            renderOrders();
+            renderUsers();
+        }
+
+        function handleLogout() {
+            document.getElementById('app-dashboard').classList.add('hidden');
+            document.getElementById('auth-container').classList.remove('hidden');
+            showAuthView('welcome');
+            showToast("Logged out successfully");
+        }
+
+        // --- DATA STATE ---
+        let orders = [
+            { id: '#ORD-9021', customer: 'Jhaz Zol', cashier: 'Jairo Park', items: '1x Iced Caramel Macchiato', total: '₱160.00', time: '3 mins ago', status: 'Pending' },
+            { id: '#ORD-9022', customer: 'Rosamaro Lee', cashier: 'Kim Bing', items: '1x Flat White', total: '₱150.00', time: '8 mins ago', status: 'Preparing' },
+            { id: '#ORD-9023', customer: 'Isaih Bravo', cashier: 'Jairo Park', items: '2x Nitro Cold Brew', total: '₱320.00', time: '12 mins ago', status: 'Ready' },
+            { id: '#ORD-9024', customer: 'Kate Pary', cashier: 'Erick Garcia', items: '1x Matcha Green Tea', total: '₱180.00', time: '18 mins ago', status: 'Completed' }
+        ];
+
+        let menuItems = [
+            { id: 1, name: 'Iced Caramel Macchiato', category: 'Espresso', price: 160.00, desc: 'Fresh espresso with vanilla syrup & caramel drizzle.', image: 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?auto=format&fit=crop&q=80&w=400', available: true },
+            { id: 2, name: 'Spanish Latte', category: 'Espresso', price: 155.00, desc: 'Rich espresso combined with sweetened condensed milk.', image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=400', available: true },
+            { id: 3, name: 'Nitro Cold Brew', category: 'Cold Brew', price: 170.00, desc: 'Slow-steeped cold brew with a velvety crema texture.', image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&q=80&w=400', available: true },
+            { id: 4, name: 'Sea Salt Dark Mocha', category: 'Cold Brew', price: 185.00, desc: 'Cold brew mocha topped with a savory sea salt cream layer.', image: 'https://images.unsplash.com/photo-1578314675249-a6919f80cc4e?auto=format&fit=crop&q=80&w=400', available: true },
+            { id: 5, name: 'Okinawa Brown Sugar Milk Tea', category: 'Milk Tea', price: 140.00, desc: 'Assam black tea with rich roasted Okinawan brown sugar syrup.', image: 'https://images.unsplash.com/photo-1558857563-b371032b851e?auto=format&fit=crop&q=80&w=400', available: true },
+            { id: 6, name: 'Matcha Sea Salt Cream', category: 'Milk Tea', price: 165.00, desc: 'Ceremonial grade Japanese matcha with sweet milk and sea salt froth.', image: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&q=80&w=400', available: true },
+            { id: 7, name: 'Butter Croissant', category: 'Pastries', price: 110.00, desc: 'Flaky French pastry baked fresh daily in-house.', image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&q=80&w=400', available: true },
+            { id: 8, name: 'Uji Matcha Croissant', category: 'Pastries', price: 135.00, desc: 'Buttery croissant stuffed with sweet uji matcha filling.', image: 'https://images.unsplash.com/photo-1621252171289-44d533534a2e?auto=format&fit=crop&q=80&w=400', available: true }
+        ];
+
+        let customerUsers = [
+            { id: 101, name: 'Maria Santos', email: 'maria@gmail.com', phone: '+63 917 123 4567', address: '124 Session Road, Baguio City', joined: 'Oct 3, 2026', gender: 'F', status: 'Active' },
+            { id: 102, name: 'Juan Dela Cruz', email: 'juan@gmail.com', phone: '+63 918 234 5678', address: '45 Harrison Road, Baguio City', joined: 'Oct 3, 2026', gender: 'M', status: 'Active' },
+            { id: 103, name: 'Peter Reyes', email: 'peter@gmail.com', phone: '+63 920 345 6789', address: '88 Leonard Wood Rd, Baguio City', joined: 'Oct 1, 2026', gender: 'M', status: 'Blocked' },
+            { id: 104, name: 'Samantha Garcia', email: 'samantha@gmail.com', phone: '+63 922 456 7890', address: '12 Marcos Highway, Baguio City', joined: 'Sep 30, 2026', gender: 'F', status: 'Active' },
+            { id: 105, name: 'Luis Fernandez', email: 'luis@gmail.com', phone: '+63 927 567 8901', address: '77 Upper General Luna, Baguio City', joined: 'Sep 29, 2026', gender: 'M', status: 'Active' },
+            { id: 106, name: 'Jhaz Zol', email: 'jhaz.zol@gmail.com', phone: '+63 915 678 9012', address: '19 Naguilian Rd, Baguio City', joined: 'Sep 25, 2026', gender: 'M', status: 'Active' },
+            { id: 107, name: 'Rosamaro Lee', email: 'rosa.lee@yahoo.com', phone: '+63 908 789 0123', address: '30 Military Cut-off, Baguio City', joined: 'Sep 18, 2026', gender: 'F', status: 'Active' },
+            { id: 108, name: 'Isaih Bravo', email: 'isaih.b@outlook.com', phone: '+63 939 890 1234', address: '50 Outlook Drive, Baguio City', joined: 'Sep 12, 2026', gender: 'M', status: 'Active' },
+            { id: 109, name: 'Kate Pary', email: 'kate.pary@gmail.com', phone: '+63 945 901 2345', address: '3 Baker Hall, Camp John Hay, Baguio City', joined: 'Aug 29, 2026', gender: 'F', status: 'Blocked' }
+        ];
+
+       let staffList = [
+            { id: 1, name: 'Hart Rimulta', role: 'Founder / Owner', avatar: 'kim.PNG', status: 'Active', shift: 'Morning' },
+            { id: 2, name: 'Kimberly Laghit', role: 'Head Barista / Manager', avatar: 'kim.PNG', status: 'Active', shift: 'Morning' },
+            { id: 3, name: 'Isaiah Bravo', role: 'Senior Cashier & Barista', avatar: 'blob:https://chatgpt.com/b1f4b2d8-ace6-43a1-8d16-9a750608e160', status: 'Active', shift: 'Morning' },
+            { id: 4, name: 'Kate albais', role: 'Pastry & Service Barista', avatar:'blob:null/1caaa334-09c9-4a92-820e-15a507e50063', status: 'Active', shift: 'Morning,afternoon & Evening'},
+            { id: 5, name: 'Erik Gultiano', role: 'Coffee Baristta & Janitor', avatar: 'c:\\Users\\erick\\Downloads\\d70c84a6-339f-455c-8471-b6887cddf711.jpg', status: 'Active', shift: 'Morning,afternoon & Evening'},
+        ];
+        let vouchers = [
+            { id: 1, code: 'MORNING15', type: 'Percentage', value: '15%', expiry: '2026-11-30', active: true },
+            { id: 2, code: 'COFFEELOVER50', type: 'Fixed', value: '₱50.00', expiry: '2026-12-15', active: true },
+            { id: 3, code: 'VIPWELCOME', type: 'Percentage', value: '25%', expiry: '2026-10-25', active: false }
+        ];
+
+        let historyLogs = [
+            { time: '10:42 AM', user: 'Kimberly Laghit', category: 'Order', desc: 'Advanced order #ORD-9022 to Preparing status.' },
+            { time: '10:15 AM', user: 'Isaiah Bravo', category: 'Cashier', desc: 'Processed payment for order #ORD-9021 (₱160.00).' },
+            { time: '09:30 AM', user: 'Kimberly Laghit', category: 'Security', desc: 'Blocked customer account for Peter Reyes due to repeated order cancellations.' },
+            { time: '08:00 AM', user: 'System', category: 'Inventory', desc: 'Flagged Oat Milk & Vanilla Syrup as Critical Low.' }
+        ];
+
+        let storeOpen = true;
+
+        // --- INIT ---
+        window.addEventListener('DOMContentLoaded', () => {
+            renderOrders();
+            renderMenu();
+            renderUsers();
+            renderStaff();
+            renderVouchers();
+            renderLogs();
+            initCharts();
+
+            const options = { weekday: 'long', month: 'short', day: 'numeric' };
+            document.getElementById('current-date-str').innerText = new Date().toLocaleDateString('en-US', options);
+
+            document.getElementById('profile-dropdown-btn').addEventListener('click', () => {
+                document.getElementById('profile-dropdown').classList.toggle('hidden');
+            });
+
+            document.getElementById('open-sidebar-btn').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.remove('-translate-x-full');
+            });
+            document.getElementById('close-sidebar-btn').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            });
+        });
+
+        // --- NAVIGATION & DOM RENDERING FUNCTIONS ---
+        function switchTab(tabId) {
+            const sections = ['dashboard', 'orders', 'menu', 'users', 'inventory', 'vouchers', 'staff', 'logs', 'analytics', 'settings'];
+            sections.forEach(sec => {
+                const el = document.getElementById(`section-${sec}`);
+                const navEl = document.getElementById(`nav-${sec}`);
+                if (sec === tabId) {
+                    if(el) el.classList.remove('hidden');
+                    if(navEl) navEl.className = 'nav-item flex items-center space-x-3.5 px-4 py-3 rounded-xl font-medium transition-all duration-200 bg-espresso-800 text-warmgold shadow-inner';
+                } else {
+                    if(el) el.classList.add('hidden');
+                    if(navEl) navEl.className = 'nav-item flex items-center space-x-3.5 px-4 py-3 rounded-xl font-medium text-cream-200/80 hover:bg-espresso-800/50 hover:text-white transition-all duration-200';
+                }
+            });
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+        }
+
+        function toggleStoreStatus(btn) {
+            storeOpen = !storeOpen;
+            const dot = document.getElementById('store-dot');
+            const ping = document.getElementById('store-ping');
+            const statusText = document.getElementById('store-status-text');
+
+            if(storeOpen) {
+                dot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500";
+                ping.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
+                statusText.innerText = "Main Street Branch • Open";
+                showToast("Store status set to: OPEN");
+                logAction('Store', 'Opened branch operations.');
+            } else {
+                dot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500";
+                ping.className = "hidden";
+                statusText.innerText = "Main Street Branch • Closed";
+                showToast("Store status set to: CLOSED");
+                logAction('Store', 'Closed branch operations.');
+            }
+        }
+
+        let currentOrderFilter = 'all';
+        function renderOrders(filterStatus = currentOrderFilter) {
+            currentOrderFilter = filterStatus;
+            const dashContainer = document.getElementById('dash-orders-container');
+            const fullTableBody = document.getElementById('full-orders-tbody');
+            if(!dashContainer || !fullTableBody) return;
+
+            dashContainer.innerHTML = '';
+            fullTableBody.innerHTML = '';
+
+            let filtered = filterStatus === 'all' ? orders : orders.filter(o => o.status === filterStatus);
+            document.getElementById('sidebar-order-count').innerText = orders.filter(o => o.status !== 'Completed').length;
+            document.getElementById('kpi-orders-count').innerText = orders.length;
+
+            filtered.forEach(order => {
+                let statusBadge = order.status === 'Pending' ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Pending</span>` :
+                                  order.status === 'Preparing' ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">Preparing</span>` :
+                                  order.status === 'Ready' ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Ready</span>` :
+                                  `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">Completed</span>`;
+
+                const card = document.createElement('div');
+                card.className = "p-4 rounded-xl border border-cream-200 bg-cream-50/40 hover:bg-white transition flex flex-col sm:flex-row sm:items-center justify-between gap-3";
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-slate-900 text-sm">${order.id}</span>
+                            <span class="text-xs text-slate-400">• ${order.customer}</span>
+                            <span class="text-[11px] font-semibold text-espresso-600 bg-espresso-50 px-2 py-0.5 rounded">Cashier: ${order.cashier}</span>
+                        </div>
+                        <p class="text-xs text-slate-600 font-medium">${order.items}</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        ${statusBadge}
+                        ${order.status !== 'Completed' ? `<button onclick="advanceOrderStatus('${order.id}')" class="px-3 py-1.5 bg-espresso-800 text-white rounded-lg text-xs font-semibold hover:bg-espresso-900 transition">Next</button>` : ''}
+                    </div>
+                `;
+                dashContainer.appendChild(card);
+
+                const row = document.createElement('tr');
+                row.className = "hover:bg-cream-50/50 transition";
+                row.innerHTML = `
+                    <td class="p-4 pl-6 font-bold text-espresso-950">${order.id}</td>
+                    <td class="p-4 font-medium text-slate-800">${order.customer}</td>
+                    <td class="p-4 text-xs text-slate-600">${order.items}</td>
+                    <td class="p-4 text-xs font-semibold text-espresso-700">${order.cashier}</td>
+                    <td class="p-4 font-bold text-slate-900">${order.total}</td>
+                    <td class="p-4">${statusBadge}</td>
+                    <td class="p-4 pr-6 text-right">
+                        ${order.status !== 'Completed' ? `<button onclick="advanceOrderStatus('${order.id}')" class="px-3 py-1.5 bg-espresso-800 text-white text-xs font-semibold rounded-lg hover:bg-espresso-900 transition">Advance</button>` : '<span class="text-xs text-slate-400">Archived</span>'}
+                    </td>
+                `;
+                fullTableBody.appendChild(row);
+            });
+        }
+
+        function filterOrders(status, btn) {
+            document.querySelectorAll('.order-filter-btn').forEach(b => {
+                b.className = "order-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-espresso-900";
+            });
+            if(btn) btn.className = "order-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-espresso-900 shadow-sm";
+            renderOrders(status);
+        }
+
+        function advanceOrderStatus(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if(order) {
+                if(order.status === 'Pending') order.status = 'Preparing';
+                else if(order.status === 'Preparing') order.status = 'Ready';
+                else if(order.status === 'Ready') order.status = 'Completed';
+
+                logAction('Order', `Advanced ${order.id} to ${order.status} status.`);
+                renderOrders(currentOrderFilter);
+                showToast(`Order ${order.id} updated to ${order.status}`);
+            }
+        }
+
+        function openNewOrderModal() {
+            const customerName = prompt("Enter Customer Name for Quick Order:", "Walk-in Guest");
+            if(!customerName) return;
+            const itemDesc = prompt("Enter Ordered Item(s):", "1x Spanish Latte");
+            if(!itemDesc) return;
+            const priceVal = prompt("Enter Total Amount in PHP (e.g. 155):", "155");
+            if(!priceVal) return;
+
+            const newId = `#ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+            const newOrder = {
+                id: newId,
+                customer: customerName,
+                cashier: 'Kim Bing',
+                items: itemDesc,
+                total: `₱${parseFloat(priceVal).toFixed(2)}`,
+                time: 'Just now',
+                status: 'Pending'
+            };
+
+            orders.unshift(newOrder);
+            logAction('Order', `Created quick counter order ${newId} for ${customerName}.`);
+            renderOrders(currentOrderFilter);
+            showToast(`Created new order ${newId}`);
+        }
+
+        let currentFilterStatus = 'all';
+        function renderUsers(filterStatus = currentFilterStatus, query = '') {
+            currentFilterStatus = filterStatus;
+            const tbody = document.getElementById('users-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            document.getElementById('count-all-users').innerText = customerUsers.length;
+            document.getElementById('count-active-users').innerText = customerUsers.filter(u => u.status === 'Active').length;
+            document.getElementById('count-blocked-users').innerText = customerUsers.filter(u => u.status === 'Blocked').length;
+
+            let filtered = customerUsers;
+            if (filterStatus !== 'all') filtered = filtered.filter(u => u.status === filterStatus);
+
+            if (query.trim() !== '') {
+                const q = query.toLowerCase();
+                filtered = filtered.filter(u => 
+                    u.name.toLowerCase().includes(q) || 
+                    u.email.toLowerCase().includes(q) || 
+                    u.phone.toLowerCase().includes(q) || 
+                    u.address.toLowerCase().includes(q)
+                );
+            }
+
+            filtered.forEach(user => {
+                const isBlocked = user.status === 'Blocked';
+                const statusBadge = isBlocked 
+                    ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Inactive</span>`
+                    : `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Active</span>`;
+
+                const row = document.createElement('tr');
+                row.className = "hover:bg-cream-50/50 transition border-b border-cream-100";
+                row.innerHTML = `
+                    <td class="p-4 pl-6">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-warmgold/30 border border-warmgold/40 flex items-center justify-center font-bold text-espresso-900">
+                                <i class="fa-solid ${user.gender === 'F' ? 'fa-user-nurse' : 'fa-user-tie'} text-slate-700"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 leading-tight">${user.name}</h4>
+                                <p class="text-xs text-slate-400 font-medium">${user.email}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 text-xs font-semibold text-slate-700">
+                        <i class="fa-solid fa-phone text-slate-400 mr-1.5"></i>${user.phone}
+                    </td>
+                    <td class="p-4 text-xs text-slate-600 max-w-xs truncate" title="${user.address}">
+                        <i class="fa-solid fa-location-dot text-espresso-600 mr-1.5"></i>${user.address}
+                    </td>
+                    <td class="p-4 text-xs font-medium text-slate-500">${user.joined}</td>
+                    <td class="p-4">${statusBadge}</td>
+                    <td class="p-4 pr-6 text-right">
+                        <button onclick="toggleBlockUser(${user.id})" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm ${isBlocked ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-red-100 text-red-700 hover:bg-red-200'}">
+                            ${isBlocked ? 'Unblock' : 'Block'}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function filterUsers(status, btn) {
+            document.querySelectorAll('.user-filter-btn').forEach(b => {
+                b.className = "user-filter-btn px-4 py-1.5 rounded-full text-xs font-medium text-slate-600 bg-white border border-cream-200 hover:bg-cream-50";
+            });
+            if(btn) btn.className = "user-filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-warmgold/80 text-espresso-950 border border-warmgold/50 shadow-sm";
+            renderUsers(status);
+        }
+
+        function toggleBlockUser(id) {
+            const user = customerUsers.find(u => u.id === id);
+            if(user) {
+                user.status = user.status === 'Blocked' ? 'Active' : 'Blocked';
+                logAction('Security', `${user.status === 'Blocked' ? 'Blocked' : 'Unblocked'} account for ${user.name}`);
+                renderUsers(currentFilterStatus);
+                showToast(`User ${user.name} is now ${user.status}.`);
+            }
+        }
+
+        function handleGlobalSearch(query) {
+            switchTab('users');
+            renderUsers('all', query);
+        }
+
+        let currentMenuCategory = 'all';
+        function renderMenu(cat = 'all') {
+            currentMenuCategory = cat;
+            const grid = document.getElementById('menu-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            let filtered = cat === 'all' ? menuItems : menuItems.filter(i => i.category === cat);
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl border border-cream-200/80 shadow-sm overflow-hidden flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="h-36 w-full bg-cream-100 overflow-hidden"><img src="${item.image}" class="w-full h-full object-cover"></div>
+                        <div class="p-4">
+                            <h4 class="font-bold text-slate-900 text-sm">${item.name}</h4>
+                            <p class="font-extrabold text-espresso-700 text-sm mt-1">₱${item.price.toFixed(2)}</p>
+                            <p class="text-xs text-slate-500 mt-1">${item.desc}</p>
+                        </div>
+                    </div>
+                    <div class="px-4 pb-4 pt-2 border-t border-cream-100 flex items-center justify-between">
+                        <span class="text-xs font-semibold ${item.available ? 'text-emerald-600' : 'text-rose-600'}">${item.available ? 'In Stock' : 'Out of Stock'}</span>
+                        <button onclick="deleteMenuItem(${item.id})" class="text-xs text-red-600 hover:bg-red-50 p-1.5 rounded transition"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterMenu(cat, btn) {
+            document.querySelectorAll('.menu-cat-btn').forEach(b => {
+                b.className = "menu-cat-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-cream-100 whitespace-nowrap";
+            });
+            if(btn) btn.className = "menu-cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-espresso-800 text-white shadow-sm whitespace-nowrap";
+            renderMenu(cat);
+        }
+
+        function openMenuModal() {
+            const modal = document.getElementById('menu-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        }
+
+        function closeMenuModal() {
+            const modal = document.getElementById('menu-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        function handleSaveMenuItem(e) {
+            e.preventDefault();
+            const name = document.getElementById('item-name').value;
+            const category = document.getElementById('item-category').value;
+            const price = parseFloat(document.getElementById('item-price').value);
+            const desc = document.getElementById('item-desc').value;
+
+            const newItem = {
+                id: Date.now(),
+                name,
+                category,
+                price,
+                desc: desc || 'Delicious specialty item freshly prepared.',
+                image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=400',
+                available: true
+            };
+
+            menuItems.unshift(newItem);
+            logAction('Menu', `Added new menu item: ${name} (${category})`);
+            renderMenu(currentMenuCategory);
+            closeMenuModal();
+            showToast(`Successfully added ${name}!`);
+            e.target.reset();
+        }
+
+        function deleteMenuItem(id) {
+            const item = menuItems.find(i => i.id === id);
+            if(item && confirm(`Are you sure you want to delete ${item.name}?`)) {
+                menuItems = menuItems.filter(i => i.id !== id);
+                logAction('Menu', `Deleted menu item: ${item.name}`);
+                renderMenu(currentMenuCategory);
+                showToast(`Deleted ${item.name}`);
+            }
+        }
+
+        function renderStaff() {
+            const container = document.getElementById('staff-cards-container');
+            if(!container) return;
+            container.innerHTML = '';
+            staffList.forEach(staff => {
+                const isSuspended = staff.status === 'Suspended';
+                const card = document.createElement('div');
+                card.className = `bg-white p-5 rounded-2xl border ${isSuspended ? 'border-red-200 bg-red-50/20' : 'border-cream-200'} shadow-sm flex items-center justify-between`;
+                card.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <img src="${staff.avatar}" class="w-14 h-14 rounded-2xl object-cover ring-2 ${isSuspended ? 'ring-red-400' : 'ring-espresso-500/20'}">
+                        <div>
+                            <h4 class="font-bold text-slate-800">${staff.name}</h4>
+                            <p class="text-xs text-slate-500 font-medium">${staff.role}</p>
+                            <span class="inline-block mt-2 text-[10px] font-bold px-2 py-0.5 rounded-md ${isSuspended ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'}">${staff.status}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button onclick="toggleSuspendStaff(${staff.id})" class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${isSuspended ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-red-100 text-red-700 hover:bg-red-200'}">
+                            ${isSuspended ? 'Unsuspend' : 'Suspend'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function toggleSuspendStaff(id) {
+            const staff = staffList.find(s => s.id === id);
+            if(staff) {
+                staff.status = staff.status === 'Suspended' ? 'Active' : 'Suspended';
+                logAction('Security', `${staff.status === 'Suspended' ? 'Suspended' : 'Unsuspended'} staff account for ${staff.name}`);
+                renderStaff();
+                showToast(`Account for ${staff.name} is now ${staff.status}.`);
+            }
+        }
+
+        function renderVouchers() {
+            const grid = document.getElementById('vouchers-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            vouchers.forEach(v => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl border border-cream-200 shadow-sm flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-extrabold text-espresso-900 tracking-wider text-base bg-cream-100 px-3 py-1 rounded-xl">${v.code}</span>
+                            <span class="text-xs font-bold ${v.active ? 'text-emerald-600 bg-emerald-50' : 'text-slate-400 bg-slate-100'} px-2.5 py-1 rounded-full">${v.active ? 'Active' : 'Expired'}</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mt-2 font-medium">Discount: <strong class="text-espresso-800">${v.value}</strong> (${v.type})</p>
+                        <p class="text-xs text-slate-400 mt-1">Expires: ${v.expiry}</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-4 mt-4 border-t border-cream-100">
+                        <button onclick="toggleVoucher(${v.id})" class="text-xs font-semibold text-espresso-700 hover:underline">${v.active ? 'Deactivate' : 'Activate'}</button>
+                        <button onclick="deleteVoucher(${v.id})" class="text-xs text-red-600 hover:text-red-800"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openVoucherModal() {
+            const modal = document.getElementById('voucher-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        }
+
+        function closeVoucherModal() {
+            const modal = document.getElementById('voucher-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        function handleSaveVoucher(e) {
+            e.preventDefault();
+            const code = document.getElementById('voucher-code').value.toUpperCase();
+            const type = document.getElementById('voucher-type').value;
+            const value = document.getElementById('voucher-val').value;
+            const expiry = document.getElementById('voucher-expiry').value;
+
+            const newV = {
+                id: Date.now(),
+                code,
+                type,
+                value: type === 'Percentage' ? `${value}%` : `₱${value}`,
+                expiry: expiry || '2026-12-31',
+                active: true
+            };
+
+            vouchers.unshift(newV);
+            logAction('Promo', `Created promo code voucher: ${code}`);
+            renderVouchers();
+            closeVoucherModal();
+            showToast(`Voucher ${code} created successfully!`);
+            e.target.reset();
+        }
+
+        function toggleVoucher(id) {
+            const v = vouchers.find(item => item.id === id);
+            if(v) {
+                v.active = !v.active;
+                logAction('Promo', `Toggled voucher ${v.code} status to ${v.active ? 'Active' : 'Inactive'}`);
+                renderVouchers();
+                showToast(`Voucher ${v.code} status updated.`);
+            }
+        }
+
+        function deleteVoucher(id) {
+            vouchers = vouchers.filter(v => v.id !== id);
+            renderVouchers();
+            showToast("Voucher removed successfully.");
+        }
+
+        function restockAlert(item) {
+            logAction('Inventory', `Requested emergency stock replenishment for ${item}.`);
+            showToast(`Batch restock order sent for ${item}!`);
+        }
+
+        function renderLogs() {
+            const tbody = document.getElementById('logs-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            historyLogs.forEach(log => {
+                const row = document.createElement('tr');
+                row.className = "hover:bg-cream-50/50";
+                row.innerHTML = `
+                    <td class="p-3.5 text-xs text-slate-400 font-medium">${log.time}</td>
+                    <td class="p-3.5 text-xs font-bold text-espresso-900">${log.user}</td>
+                    <td class="p-3.5"><span class="bg-cream-100 text-espresso-800 text-[10px] font-bold px-2 py-0.5 rounded">${log.category}</span></td>
+                    <td class="p-3.5 text-xs text-slate-600">${log.desc}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function clearLogs() {
+            if(confirm("Are you sure you want to clear system activity logs?")) {
+                historyLogs = [];
+                renderLogs();
+                showToast("History logs cleared.");
+            }
+        }
+
+        function logAction(category, desc) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            historyLogs.unshift({ time, user: 'Kim Bing', category, desc });
+            renderLogs();
+        }
+
+        function saveSettings() {
+            const storeName = document.getElementById('settings-store-name').value;
+            logAction('Store', `Updated store title to: ${storeName}`);
+            showToast("Settings successfully updated!");
+        }
+
+        function initCharts() {
+            const hourlyCtx = document.getElementById('hourlySalesChart');
+            if(hourlyCtx) {
+                new Chart(hourlyCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['7am', '9am', '11am', '1pm', '3pm', '5pm', '7pm'],
+                        datasets: [{ data: [25, 68, 45, 52, 38, 42, 20], backgroundColor: '#7E432A', borderRadius: 6 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+                });
+            }
+
+            const weeklyCtx = document.getElementById('weeklySalesChart');
+            if(weeklyCtx) {
+                new Chart(weeklyCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{ data: [65000, 84250, 78000, 92000, 115000, 142000, 128000], borderColor: '#7E432A', backgroundColor: 'rgba(126, 67, 42, 0.1)', fill: true, tension: 0.4 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            }
+
+            const yearlyCtx = document.getElementById('yearlySalesChart');
+            if(yearlyCtx) {
+                new Chart(yearlyCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['2023', '2024', '2025', '2026 (YTD)'],
+                        datasets: [{ label: 'Annual Revenue (₱)', data: [3200000, 4800000, 6100000, 7500000], backgroundColor: '#C88A49', borderRadius: 6 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } } } }
+                });
+            }
+
+            const pieCtx = document.getElementById('categoryPieChart');
+            if(pieCtx) {
+                new Chart(pieCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Espresso Drinks', 'Cold Brew', 'Milk Tea', 'Pastries'],
+                        datasets: [{ data: [45, 20, 20, 15], backgroundColor: ['#5C311E', '#9E5B3C', '#E0A96D', '#D4A373'] }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                });
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+    </script>
+</body>
+</html>
